@@ -8,6 +8,7 @@ android {
             storeFile file('C:\\Users\\nandi\\Keystore\\NMKey.jks')
             storePassword '@Samskara!1'
             keyPassword '@Samskara!1'
+            keyAlias 'mad22sp'
         }
     }
     compileSdk 32

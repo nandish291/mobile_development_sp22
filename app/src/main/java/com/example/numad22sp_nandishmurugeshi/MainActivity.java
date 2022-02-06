@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Locale;
 
@@ -18,14 +19,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void aboutMe(View view) {
-
-
-        TextView textView = findViewById(R.id.info);
-
-
-        textView.setText(R.string.name_email);
-
-
+        Toast.makeText(this, R.string.name_email, Toast.LENGTH_SHORT).show();
     }
 
 }
