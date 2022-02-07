@@ -4,7 +4,7 @@
     <string name="no_value_string">No Value</string>
     <string name="name_email">Nandish Murugeshi \nmurugeshi.n@northeastern.edu</string>
     <string name="clicky_click">Clicky Click</string>
-    <string name="pressed">Pressed</string>
+    <string name="pressed">Pressed %1$s</string>
     <string name="f">F</string>
     <string name="b">B</string>
     <string name="d">D</string>
