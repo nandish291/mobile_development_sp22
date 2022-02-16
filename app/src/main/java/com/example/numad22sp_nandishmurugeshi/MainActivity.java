@@ -20,11 +20,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void aboutMe(View view) {
-        Toast.makeText(this, R.string.name_email, Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, AboutMe.class);
+        startActivity(intent);
     }
 
     public void clickyClick(View view) {
         Intent intent = new Intent(this, MainActivity2.class);
+        startActivity(intent);
+    }
+
+    public void onLinkCollector(View view) {
+        Intent intent = new Intent(this, LinkCollector.class);
         startActivity(intent);
     }
 
