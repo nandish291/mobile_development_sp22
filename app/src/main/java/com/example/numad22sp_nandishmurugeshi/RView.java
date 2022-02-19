@@ -36,8 +36,6 @@ public class RView extends RecyclerView.Adapter<RViewHolder>  {
 
         holder.itemName.setText(card.getItemName());
         holder.itemUrl.setText(card.getItemUrl());
-        holder.checkBox.setChecked(card.isChecked());
-
     }
 
     @Override

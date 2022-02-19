@@ -11,13 +11,11 @@ public class RViewHolder extends RecyclerView.ViewHolder {
 
     public TextView itemName;
     public TextView itemUrl;
-    public CheckBox checkBox;
 
     public RViewHolder(@NonNull View itemView, final ItemClickListener clickListener) {
         super(itemView);
         itemName = itemView.findViewById(R.id.name);
         itemUrl = itemView.findViewById(R.id.url);
-        checkBox =itemView.findViewById(R.id.checkbox);
 
         itemName.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -31,14 +29,14 @@ public class RViewHolder extends RecyclerView.ViewHolder {
                 }
             }
         });
-
-        checkBox.setOnClickListener(new View.OnClickListener() {
+        itemUrl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (clickListener != null) {
                     int position = getLayoutPosition();
                     if (position != RecyclerView.NO_POSITION) {
-                        clickListener.itemCheckClick(position);
+
+                        clickListener.itemClick(position);
                     }
                 }
             }

@@ -3,10 +3,14 @@ package com.example.numad22sp_nandishmurugeshi;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -19,7 +23,7 @@ import java.util.ArrayList;
 
 public class LinkCollector extends AppCompatActivity {
 
-    private ArrayList<RViewCard> itemList= new ArrayList<>();
+    private final ArrayList<RViewCard> itemList= new ArrayList<>();
     private RecyclerView recyclerView;
     private RView rView;
     private RecyclerView.LayoutManager layoutManager;
@@ -33,15 +37,55 @@ public class LinkCollector extends AppCompatActivity {
         setContentView(R.layout.activity_link_collector);
         init(savedInstanceState);
         createView();
+
+        ItemTouchHelper itemTouchHelper =new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getLayoutPosition();
+                RViewCard temp = itemList.remove(position);
+                Snackbar snackbar =Snackbar.make(findViewById(R.id.recyclerView), "URL deleted"
+                        , Snackbar.LENGTH_SHORT);
+                snackbar.setAction(R.string.undo, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        itemList.add(temp);
+                        rView.notifyDataSetChanged();
+                    }
+                });
+                snackbar.show();
+                rView.notifyItemRemoved(position);
+            }
+        });
+
+        itemTouchHelper.attachToRecyclerView(recyclerView);
     }
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
+        outState.putInt("Size",itemList.size());
+        for (int i=0; i < itemList.size(); i++) {
+            outState.putString("linkName "+i,itemList.get(i).getItemName());
+            outState.putString("linkUrl "+i,itemList.get(i).getItemUrl());
+        }
         super.onSaveInstanceState(outState);
     }
 
     private void init(Bundle savedInstanceState) {
+        if(savedInstanceState !=null && savedInstanceState.containsKey("Size")) {
+            int size =savedInstanceState.getInt("Size");
 
+            for (int i=0; i < size; i++) {
+                RViewCard card = new RViewCard(savedInstanceState.getString("linkName "+i),
+                        savedInstanceState.getString("linkUrl "+i));
+                itemList.add(card);
+                rView.notifyItemInserted(i);
+            }
+        }
     }
 
     private void createView() {
@@ -52,18 +96,14 @@ public class LinkCollector extends AppCompatActivity {
         ItemClickListener itemClickListener = new ItemClickListener() {
             @Override
             public void itemClick(int position) {
-                //attributions bond to the item has been changed
-                itemList.get(position).itemClick(position);
-
-                rView.notifyItemChanged(position);
-            }
-
-            @Override
-            public void itemCheckClick(int position) {
-                //attributions bond to the item has been changed
-                itemList.get(position).itemCheckClick(position);
-
-                rView.notifyItemChanged(position);
+                Intent intent = new Intent(Intent.ACTION_VIEW,
+                        Uri.parse(itemList.get(position).getItemUrl()));
+                try {
+                    startActivity(intent);
+                }catch (ActivityNotFoundException e) {
+                    Snackbar.make(findViewById(R.id.recyclerView),
+                            "Invalid URI",Snackbar.LENGTH_SHORT).show();
+                }
             }
         };
 
@@ -73,10 +113,15 @@ public class LinkCollector extends AppCompatActivity {
     }
 
     private void addItemToList() {
-        RViewCard card = new RViewCard(urlName.getText().toString(), url.getText().toString()
-                , false);
+        String urlString = url.getText().toString();
+        if(!urlString.startsWith("https://")) {
+            urlString ="https://" + urlString;
+        }
+        RViewCard card = new RViewCard(urlName.getText().toString(), urlString);
         itemList.add(card);
         rView.notifyItemInserted(itemList.size() - 1);
+        Snackbar.make(findViewById(R.id.recyclerView),
+                "Url added successfully", Snackbar.LENGTH_SHORT).show();
     }
 
 
@@ -118,4 +163,6 @@ public class LinkCollector extends AppCompatActivity {
         );
         urlDialog.show();
     }
+
+
 }

@@ -1,26 +1,14 @@
 package com.example.numad22sp_nandishmurugeshi;
 
-public class RViewCard implements ItemClickListener{
+public class RViewCard{
 
     private String itemName;
     private String itemUrl;
-    private boolean checked;
 
 
-    public RViewCard(String itemName, String itemUrl, boolean checked) {
+    public RViewCard(String itemName, String itemUrl) {
         this.itemName = itemName;
         this.itemUrl = itemUrl;
-        this.checked = checked;
-    }
-
-    @Override
-    public void itemClick(int position) {
-        checked = !checked;
-    }
-
-    @Override
-    public void itemCheckClick(int position) {
-        checked = !checked;
     }
 
     public String getItemName() {
@@ -37,13 +25,5 @@ public class RViewCard implements ItemClickListener{
 
     public void setItemUrl(String itemUrl) {
         this.itemUrl = itemUrl;
-    }
-
-    public boolean isChecked() {
-        return checked;
-    }
-
-    public void setChecked(boolean checked) {
-        this.checked = checked;
     }
 }
