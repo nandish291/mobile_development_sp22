@@ -13,4 +13,5 @@
     <string name="a">A</string>
     <string name="name">Nandish Murugeshi</string>
     <string name="link_collector">Link Collector</string>
+    <string name="addUrl">addUrl</string>
 </resources>
