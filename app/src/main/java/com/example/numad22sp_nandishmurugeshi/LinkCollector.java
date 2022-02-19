@@ -83,7 +83,6 @@ public class LinkCollector extends AppCompatActivity {
                 RViewCard card = new RViewCard(savedInstanceState.getString("linkName "+i),
                         savedInstanceState.getString("linkUrl "+i));
                 itemList.add(card);
-                rView.notifyItemInserted(i);
             }
         }
     }
