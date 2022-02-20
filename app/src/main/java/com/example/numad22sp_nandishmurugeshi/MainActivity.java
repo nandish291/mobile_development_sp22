@@ -34,4 +34,9 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public void onLocationClick(View view) {
+        Intent intent = new Intent(this, LocationView.class);
+        startActivity(intent);
+    }
+
 }

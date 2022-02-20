@@ -67,12 +67,12 @@ public class LinkCollector extends AppCompatActivity {
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
         outState.putInt("Size",itemList.size());
         for (int i=0; i < itemList.size(); i++) {
             outState.putString("linkName "+i,itemList.get(i).getItemName());
             outState.putString("linkUrl "+i,itemList.get(i).getItemUrl());
         }
-        super.onSaveInstanceState(outState);
     }
 
     private void init(Bundle savedInstanceState) {
