@@ -20,4 +20,8 @@
     <string name="latitude">Latitude:</string>
     <string name="loading">Loading</string>
     <string name="location_details">Location Details:</string>
+    <string name="home_label_text">Home</string>
+    <string name="at_your_service_button_label">At Your Service</string>
+    <string name="event_search_button">Search</string>
+    <string name="event_search_placeholder">Search for events</string>
 </resources>
