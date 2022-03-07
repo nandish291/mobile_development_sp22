@@ -48,6 +48,8 @@ public class AtYourService extends AppCompatActivity {
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt("Size", eventCards.size());
+        EditText searchBox = findViewById(R.id.event_search);
+        outState.putString("searchText", searchBox.getText().toString());
         for (int i = 0; i < eventCards.size(); i++) {
             outState.putString("eventName" + i, eventCards.get(i).getEventName());
             outState.putString("venue" + i, eventCards.get(i).getVenue());
@@ -60,7 +62,8 @@ public class AtYourService extends AppCompatActivity {
         if (savedInstanceState != null && savedInstanceState.containsKey("Size")) {
             progressBar.setVisibility(View.VISIBLE);
             int size = savedInstanceState.getInt("Size");
-
+            EditText searchBox = findViewById(R.id.event_search);
+            searchBox.setText(savedInstanceState.getString("searchText"));
             for (int i = 0; i < size; i++) {
                 EventCard card = new EventCard(savedInstanceState.getString("eventName" + i),
                         savedInstanceState.getString("venue" + i),
