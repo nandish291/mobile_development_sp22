@@ -1,5 +1,6 @@
 package com.example.numad22sp_nandishmurugeshi.atYourService;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -7,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 
 import com.example.numad22sp_nandishmurugeshi.R;
 import com.example.numad22sp_nandishmurugeshi.model.Event;
@@ -20,62 +22,96 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class AtYourService extends AppCompatActivity {
 
-    private List<EventCard> eventCards = new ArrayList<>();
-    private EventView eventView;
+    private List<EventCard> eventCards;
+    private ProgressBar progressBar;
 
+    public AtYourService() {
+        this.eventCards = new ArrayList<>();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_at_your_service);
+        progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.GONE);
+        init(savedInstanceState);
     }
 
-    public void getEvents(View view) {
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("Size", eventCards.size());
+        for (int i = 0; i < eventCards.size(); i++) {
+            outState.putString("eventName" + i, eventCards.get(i).getEventName());
+            outState.putString("venue" + i, eventCards.get(i).getVenue());
+            outState.putString("date" + i, eventCards.get(i).getDate().toString());
+            outState.putString("image" + i, eventCards.get(i).getImage());
+        }
+    }
+
+    private void init(Bundle savedInstanceState) {
+        if (savedInstanceState != null && savedInstanceState.containsKey("Size")) {
+            progressBar.setVisibility(View.VISIBLE);
+            int size = savedInstanceState.getInt("Size");
+
+            for (int i = 0; i < size; i++) {
+                EventCard card = new EventCard(savedInstanceState.getString("eventName" + i),
+                        savedInstanceState.getString("venue" + i),
+                        new Date(savedInstanceState.getString("date" + i)),
+                        savedInstanceState.getString("image" + i));
+                eventCards.add(card);
+            }
+            createView();
+            progressBar.setVisibility(View.GONE);
+        }
+    }
+
+    public void getEvents(View view) throws InterruptedException {
         eventCards = new ArrayList<>();
         EditText searchBox = findViewById(R.id.event_search);
         String searchTerm = searchBox.getText().toString();
+        progressBar.setVisibility(View.VISIBLE);
         if (searchTerm.isEmpty()) {
             searchBox.setError("Search Box Cannot be empty");
-        }
-        else {
-            ExecutorService service = Executors.newFixedThreadPool(1);
-            List<Event> events = new ArrayList<>();
-            Future<String> future = service.submit(new AsyncTask(searchTerm));
-            String result;
-            try {
-                result = future.get(10, TimeUnit.SECONDS).toString();
-                ObjectMapper objectMapper = new ObjectMapper();
-                Map<String, Object> map = objectMapper.readValue(result, Map.class);
-                for (Map.Entry<String, Object> eventsMap : map.entrySet()) {
-                    if (eventsMap.getKey().equals("events")) {
-                        ArrayList<Object> arrayList = (ArrayList<Object>) eventsMap.getValue();
-                        for (int i = 0; i < arrayList.size(); i++) {
-                            Map<String, Object> mapTemp = (Map<String, Object>) arrayList.get(i);
-                            JSONObject jsonObject = new JSONObject(mapTemp);
-                            events.add(objectMapper.readValue(jsonObject.toString(), Event.class));
+        } else {
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    StringBuilder content = new StringBuilder();
+                    try {
+                        String urlString = "https://api.seatgeek.com/2/events?q=" + searchTerm +
+                                "&client_id=" +
+                                "MjE2OTUwODJ8MTYxODA4NjcyNS44MzkzNTc2";
+                        URL url = new URL(urlString);
+                        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                        con.setDoInput(true);
+                        con.setRequestMethod("GET");
+                        con.setConnectTimeout(5000);
+                        BufferedReader in = new BufferedReader(
+                                new InputStreamReader(con.getInputStream()));
+                        String inputLine;
+                        while ((inputLine = in.readLine()) != null) {
+                            content.append(inputLine);
                         }
+                        in.close();
+                        con.disconnect();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
                     }
+                    populateEvents(content.toString());
                 }
-                System.out.println(result);
-            } catch (TimeoutException | InterruptedException | ExecutionException | IOException ex) {
-                ex.printStackTrace();
-            }
-            for (Event e : events) {
-                eventCards.add(new EventCard(e.title, e.performers.get(0).shortName, e.venue.name
-                        , e.datetimeLocal, e.performers.get(0).image));
-            }
+            });
+            thread.start();
+            System.out.println("Thread Still Running");
+            thread.join();
+            progressBar.setVisibility(View.GONE);
             createView();
         }
     }
@@ -88,39 +124,29 @@ public class AtYourService extends AppCompatActivity {
         recyclerView.setAdapter(eventView);
         recyclerView.setLayoutManager(layoutManager);
     }
-}
 
-class AsyncTask implements Callable<String> {
-
-    String queryText;
-
-    public AsyncTask(String queryText) {
-        this.queryText = queryText;
-    }
-
-    @Override
-    public String call() {
-        StringBuilder content = new StringBuilder();
+    void populateEvents(String result) {
+        List<Event> events = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> map = null;
         try {
-            String urlString = "https://api.seatgeek.com/2/events?q=" + queryText +
-                    "&client_id=" +
-                    "MjE2OTUwODJ8MTYxODA4NjcyNS44MzkzNTc2";
-            URL url = new URL(urlString);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setDoInput(true);
-            con.setRequestMethod("GET");
-            con.setConnectTimeout(5000);
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine);
+            map = objectMapper.readValue(result, Map.class);
+            for (Map.Entry<String, Object> eventsMap : map.entrySet()) {
+                if (eventsMap.getKey().equals("events")) {
+                    ArrayList<Object> arrayList = (ArrayList<Object>) eventsMap.getValue();
+                    for (int i = 0; i < arrayList.size(); i++) {
+                        Map<String, Object> mapTemp = (Map<String, Object>) arrayList.get(i);
+                        JSONObject jsonObject = new JSONObject(mapTemp);
+                        events.add(objectMapper.readValue(jsonObject.toString(), Event.class));
+                    }
+                }
             }
-            in.close();
-            con.disconnect();
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return content.toString();
+        for (Event e : events) {
+            eventCards.add(new EventCard(e.title, e.venue.name
+                    , e.datetimeLocal, e.performers.get(0).image));
+        }
     }
 }

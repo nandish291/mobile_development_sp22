@@ -9,7 +9,7 @@ public class EventCard {
     private final Date date;
     private final String image;
 
-    public EventCard(String eventName, String performerName, String venue, Date date, String image) {
+    public EventCard(String eventName, String venue, Date date, String image) {
         this.eventName = eventName;
         this.venue = venue;
         this.date = date;
